@@ -1,0 +1,30 @@
+[
+  {
+    "request_id": "1",
+    "kind": "explicit",
+    "signal": "up",
+    "query": "what is the kv cache",
+    "response": "It stores key/value tensors per token."
+  },
+  {
+    "request_id": "2",
+    "kind": "explicit",
+    "signal": "down",
+    "query": "explain gqa",
+    "response": "unclear answer"
+  },
+  {
+    "request_id": "3",
+    "kind": "implicit",
+    "signal": "copy",
+    "query": "what is paged attention",
+    "response": "It pages the KV cache into fixed blocks."
+  },
+  {
+    "request_id": "4",
+    "kind": "implicit",
+    "signal": "regenerate",
+    "query": "define rag",
+    "response": "too short"
+  }
+]

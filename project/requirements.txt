@@ -1,0 +1,7 @@
+# Core platform runs on the standard library alone.
+# These are optional extras for the HTTP surface, real backends, and tests.
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+httpx>=0.27          # only needed for the OpenAI-compatible backend
+pytest>=8.0          # test suite

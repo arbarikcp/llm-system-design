@@ -1,0 +1,32 @@
+[
+  {
+    "item_id": "vllm",
+    "title": "vLLM Serving",
+    "text": "high-throughput gpu serving with paged attention and continuous batching"
+  },
+  {
+    "item_id": "rag101",
+    "title": "RAG Foundations",
+    "text": "retrieval augmented generation grounding documents citations"
+  },
+  {
+    "item_id": "train",
+    "title": "Distributed Training",
+    "text": "deepspeed fsdp zero parallelism gpu cluster"
+  },
+  {
+    "item_id": "agents",
+    "title": "Agent Systems",
+    "text": "react tool calling planning memory autonomous agents"
+  },
+  {
+    "item_id": "cook",
+    "title": "Italian Cooking",
+    "text": "pasta recipes tomato basil kitchen cooking food"
+  },
+  {
+    "item_id": "guard",
+    "title": "LLM Guardrails",
+    "text": "safety moderation prompt injection jailbreak pii output validation"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "query": "What does the KV cache store?",
+    "expect": "key"
+  },
+  {
+    "query": "What shrinks the KV cache?",
+    "expect": "grouped"
+  },
+  {
+    "query": "How does PagedAttention help?",
+    "expect": "block"
+  },
+  {
+    "query": "Why does RAG reduce hallucination?",
+    "expect": "retriev"
+  },
+  {
+    "query": "What is model cascading?",
+    "expect": "cheap"
+  }
+]

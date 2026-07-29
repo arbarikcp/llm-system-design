@@ -1,0 +1,13 @@
+# LangChain lab + Streamlit UI
+streamlit>=1.40
+langchain>=1.0
+langchain-core>=1.0
+langchain-community>=0.3
+langchain-ollama>=0.2      # real backend: ChatOllama + OllamaEmbeddings
+pytest>=8.0                # test suite
+
+# Ollama itself is a separate install (https://ollama.com). Then:
+#   ollama pull llama3.1
+#   ollama pull nomic-embed-text
+# With Ollama running the lab uses real models; otherwise it falls back to
+# a deterministic offline mode so everything still runs and is testable.

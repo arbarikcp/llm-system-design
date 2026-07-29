@@ -1,0 +1,17 @@
+{
+  "alice": [
+    "vllm",
+    "rag101"
+  ],
+  "bob": [
+    "vllm",
+    "train"
+  ],
+  "carol": [
+    "rag101",
+    "agents"
+  ],
+  "dave": [
+    "cook"
+  ]
+}

@@ -1,0 +1,25 @@
+# LaTeX build artifacts
+book/_minted-*/
+book/*.aux
+book/*.aex
+book/*.log
+book/*.out
+book/*.toc
+book/*.idx
+book/*.ilg
+book/*.ind
+book/*.fls
+book/*.fdb_latexmk
+book/*.pyg
+book/*.w18
+book/*.tmp
+# Ignored directories
+book/
+old/
+tools/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
