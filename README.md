@@ -1,5 +1,12 @@
 # LLM System Design — Project & Lab Companion
 
+Preview: https://drive.google.com/file/d/10BprurqQg2WjD4CvVOUBRNgWLJ602g-l/view?usp=sharing
+
+Premium Guide: https://shop.beacons.ai/aiengineeringinsider/454e1828-17a8-4b3f-83ba-9fe286e5d942
+
+<img width="1241" height="1754" alt="llm preview-1-16_page-0001" src="https://github.com/user-attachments/assets/b5b94607-3693-4d54-8b36-76d9d37cd772" />
+
+
 A production-grade, interview-focused implementation of Large Language Model systems featuring:
 1. **`project/` (`llm_platform`)**: A minimal, production-shaped LLM serving + RAG reference platform built in pure Python with zero heavy framework dependencies.
 2. **`lab/` (`llm_lab`)**: An interactive hands-on Streamlit web application built with **LangChain**, backing local **Ollama** models (`llama3.1` + `nomic-embed-text`) with a deterministic offline fallback.
