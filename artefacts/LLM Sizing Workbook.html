@@ -1,0 +1,1146 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>LLM Sizing Workbook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600;112,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: engineering datasheet. Sticky tab bar; Notes = TOC rail + reading column;
+   Calculator = input sheet left, live worksheet right; Intake = project list + form. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --ink:#152030; --ink-2:#465567; --muted:#728093;
+  --line:#D9E0E8; --line-2:#E8EDF2; --accent:#2B57D6; --accent-ink:#FFFFFF; --accent-soft:#E5ECFC;
+  --code:#EDF1F6; --good:#1E8551; --good-soft:#E3F3EA; --warn:#A86A12; --warn-soft:#FBF0DC;
+  --bad:#BE3A33; --bad-soft:#FBE6E4;
+  --f-display:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E131A; --surface:#151C25; --ink:#E4EAF1; --ink-2:#A7B3C1; --muted:#7D8A99;
+  --line:#28323E; --line-2:#1F2833; --accent:#7F9DFF; --accent-ink:#0E131A; --accent-soft:#1B2640;
+  --code:#1A222C; --good:#4CC28A; --good-soft:#15291F; --warn:#E2A94C; --warn-soft:#2D2312;
+  --bad:#F0736A; --bad-soft:#331A19; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0E131A; --surface:#151C25; --ink:#E4EAF1; --ink-2:#A7B3C1; --muted:#7D8A99;
+  --line:#28323E; --line-2:#1F2833; --accent:#7F9DFF; --accent-ink:#0E131A; --accent-soft:#1B2640;
+  --code:#1A222C; --good:#4CC28A; --good-soft:#15291F; --warn:#E2A94C; --warn-soft:#2D2312;
+  --bad:#F0736A; --bad-soft:#331A19; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.top-inner{display:flex;flex-wrap:wrap;align-items:center;gap:8px 24px;padding-block:12px}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand h1{font-family:var(--f-display);font-stretch:112%;font-weight:800;font-size:20px;letter-spacing:-.01em;margin:0}
+.brand .sub{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+nav.tabs{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav.tabs button{font:500 14px var(--f-body);color:var(--ink-2);background:none;border:1px solid transparent;border-radius:999px;padding:6px 14px;cursor:pointer}
+nav.tabs button:hover{color:var(--ink);background:var(--line-2)}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--surface)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{padding-block:28px 64px}
+h2,h3,h4{font-family:var(--f-display);font-stretch:112%;text-wrap:balance;line-height:1.2}
+h2{font-weight:800;font-size:26px;margin:0 0 12px;letter-spacing:-.015em}
+h3{font-weight:600;font-size:19px;margin:28px 0 8px}
+h4{font-weight:600;font-size:15px;margin:20px 0 6px}
+p{margin:0 0 12px}
+a{color:var(--accent)}
+code,.mono{font-family:var(--f-mono);font-size:.88em}
+code{background:var(--code);padding:1px 5px;border-radius:4px}
+pre{font-family:var(--f-mono);font-size:13px;line-height:1.55;background:var(--code);border-radius:var(--r);padding:12px 14px;overflow-x:auto;margin:0 0 14px;color:var(--ink)}
+.tbl{overflow-x:auto;margin:0 0 16px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--ink-2);font-size:12.5px;text-transform:uppercase;letter-spacing:.05em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:13px}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 var(--r) var(--r) 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout p:last-child{margin:0}
+.callout strong:first-child{display:block;font-family:var(--f-display);font-stretch:112%;font-size:13px;letter-spacing:.02em;margin-bottom:2px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.view[hidden]{display:none!important}
+
+/* NOTES */
+.notes{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);align-self:start;font-size:13.5px;max-height:calc(100vh - 100px);overflow:auto}
+.toc ol{list-style:none;margin:8px 0 0;padding:0;counter-reset:t}
+.toc li{counter-increment:t}
+.toc a{display:flex;gap:8px;color:var(--ink-2);text-decoration:none;padding:4px 0;border-bottom:1px solid var(--line-2)}
+.toc a::before{content:counter(t,decimal-leading-zero);font-family:var(--f-mono);font-size:11px;color:var(--muted);padding-top:2px}
+.toc a:hover{color:var(--accent)}
+article.read{max-width:760px;min-width:0}
+article.read section{padding-bottom:28px;margin-bottom:28px;border-bottom:1px solid var(--line)}
+article.read section:last-child{border-bottom:0}
+.lede{font-size:17px;color:var(--ink-2);max-width:62ch}
+.kv-formula{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;margin:6px 0 16px}
+.kv-formula .term{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:6px 10px;text-align:center;min-width:76px}
+.kv-formula .term b{display:block;font-family:var(--f-mono);font-size:18px;font-weight:500}
+.kv-formula .term span{font-size:11.5px;color:var(--muted)}
+.kv-formula .op{align-self:center;font-family:var(--f-mono);color:var(--muted)}
+.qa{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-bottom:16px}
+.qa .q{font-style:italic;color:var(--ink-2);margin-bottom:8px}
+ul.tight,ol.tight{margin:0 0 14px;padding-left:20px}
+ul.tight li,ol.tight li{margin:3px 0}
+
+/* CALCULATOR */
+.calc{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:28px;align-items:start}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:4px 16px 16px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);max-height:calc(100vh - 96px);overflow:auto}
+.sheet fieldset{border:0;border-bottom:1px solid var(--line-2);margin:0;padding:12px 0}
+.sheet fieldset:last-child{border-bottom:0}
+.sheet legend{font-family:var(--f-display);font-stretch:112%;font-weight:600;font-size:14px;padding:0;margin-bottom:8px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.fgrid .full{grid-column:1/-1}
+.field label{display:block;font-size:12px;color:var(--ink-2);margin-bottom:2px;line-height:1.3}
+.field input[type=number],.field input[type=text],.field select,.field textarea{width:100%;font:14px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:6px 8px}
+.field input[type=number]{font-family:var(--f-mono);font-size:13.5px}
+.field textarea{min-height:64px;resize:vertical}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--ink-2)}
+.check input{margin-top:3px}
+.hint{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+.preset-row{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+.chipbtn{font:500 12px var(--f-body);border:1px solid var(--line);background:var(--bg);color:var(--ink-2);border-radius:999px;padding:4px 10px;cursor:pointer}
+.chipbtn:hover{border-color:var(--accent);color:var(--accent)}
+.results{min-width:0}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.summary .cell{background:var(--surface);padding:12px 14px}
+.summary .lab{font-size:12px;color:var(--ink-2)}
+.summary .val{font-family:var(--f-display);font-stretch:112%;font-weight:800;font-size:26px;line-height:1.15;font-variant-numeric:tabular-nums;margin-top:2px}
+.summary .note{font-size:12px;color:var(--muted)}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2)}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.pill.good{background:var(--good-soft);border-color:transparent;color:var(--good)}.pill.good::before{background:var(--good)}
+.pill.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn)}.pill.warn::before{background:var(--warn)}
+.pill.bad{background:var(--bad-soft);border-color:transparent;color:var(--bad)}.pill.bad::before{background:var(--bad)}
+.ws{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:14px}
+.ws > h3{margin:0;padding:12px 16px;border-bottom:1px solid var(--line-2);font-size:15.5px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.ws > h3 .eyebrow{font-family:var(--f-mono)}
+.ws .body{padding:10px 16px 14px}
+.lines{font-family:var(--f-mono);font-size:13px;line-height:1.7;overflow-x:auto}
+.line{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr) auto;gap:12px;padding:3px 0;border-bottom:1px dashed var(--line-2);align-items:baseline}
+.line:last-child{border-bottom:0}
+.line .k{font-family:var(--f-body);font-size:13px;color:var(--ink-2)}
+.line .f{color:var(--muted);font-size:12px;white-space:nowrap;overflow-x:auto}
+.line .v{font-weight:500;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.line.total .v{color:var(--accent);font-weight:600}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+.chart{min-width:0;position:relative}
+.chart .ct{font-size:13px;font-weight:600;margin-bottom:2px}
+.chart .cs{font-size:12px;color:var(--muted);margin-bottom:4px}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--surface);font:12px var(--f-mono);padding:5px 8px;border-radius:5px;white-space:nowrap;transform:translate(-50%,-110%)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cmp > div{border:1px solid var(--line-2);border-radius:var(--r);padding:10px 12px;min-width:0}
+.cmp .big{font-family:var(--f-display);font-stretch:112%;font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:5px;background:var(--line-2);overflow:hidden;margin:6px 0 2px}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:5px}
+
+/* INTAKE */
+.intake{display:grid;grid-template-columns:260px minmax(0,1fr);gap:28px;align-items:start}
+.plist{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px)}
+.plist h3{margin:0 0 8px;font-size:15px}
+.plist ul{list-style:none;margin:0 0 10px;padding:0}
+.plist li button{width:100%;text-align:left;background:none;border:0;border-radius:5px;padding:7px 8px;font:14px var(--f-body);color:var(--ink);cursor:pointer;display:flex;flex-direction:column}
+.plist li button:hover{background:var(--line-2)}
+.plist li button[aria-current="true"]{background:var(--accent-soft);color:var(--accent)}
+.plist li small{color:var(--muted);font-size:11.5px}
+.btn{font:600 13.5px var(--f-body);border-radius:5px;padding:8px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px}
+.qsec{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:4px 18px 16px;margin-bottom:14px}
+.qsec h3{margin:14px 0 2px;font-size:16px;display:flex;gap:10px;align-items:baseline}
+.qsec h3 .eyebrow{font-size:11px}
+.qsec > p{color:var(--muted);font-size:13px;margin-bottom:10px}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px 16px}
+.qgrid .wide{grid-column:1/-1}
+.feeds{font-family:var(--f-mono);font-size:10.5px;color:var(--accent);letter-spacing:.03em;margin-left:4px}
+.derived{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 18px;margin-bottom:14px}
+.flags{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.flags li{display:flex;gap:8px;font-size:13.5px}
+.flags .pill{flex-shrink:0}
+.status{font-size:12.5px;color:var(--muted);min-height:1.4em}
+
+@media (max-width:980px){
+  .notes{grid-template-columns:1fr}
+  .toc{position:static;max-height:none}
+  .calc,.intake{grid-template-columns:1fr}
+  .sheet,.plist{position:static;max-height:none}
+  .summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:620px){
+  .charts,.cmp{grid-template-columns:1fr}
+  .line{grid-template-columns:1fr auto}
+  .line .f{grid-column:1/-1;grid-row:2}
+  .brand h1{font-size:18px}
+  nav.tabs{margin-left:0}
+  header.top{position:static}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <div class="brand">
+      <h1>LLM Sizing Workbook</h1>
+      <span class="sub">LLM System Design · Ch. 1</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-notes" data-view="notes" aria-selected="true">Chapter notes</button>
+      <button role="tab" id="tab-calculator" data-view="calculator" aria-selected="false">Calculator</button>
+      <button role="tab" id="tab-intake" data-view="intake" aria-selected="false">Project intake</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============================ NOTES ============================ -->
+<div class="view" id="view-notes" role="tabpanel" aria-labelledby="tab-notes">
+<div class="notes">
+  <aside class="toc" aria-label="Contents">
+    <div class="eyebrow">Contents</div>
+    <ol>
+      <li><a href="#n-why">How LLM systems differ</a></li>
+      <li><a href="#n-kv">KV cache estimation</a></li>
+      <li><a href="#n-units">Fleet, replica, slot</a></li>
+      <li><a href="#n-batch">Batching and its gaps</a></li>
+      <li><a href="#n-headroom">Headroom and p99</a></li>
+      <li><a href="#n-cost">Monthly cost and caching</a></li>
+      <li><a href="#n-bigger">Bigger vs. more replicas</a></li>
+      <li><a href="#n-chain">The estimation chain, worked</a></li>
+      <li><a href="#n-q11">Q1.1 Fleet sizing</a></li>
+      <li><a href="#n-q13">Q1.3 Cost diagnosis</a></li>
+      <li><a href="#n-q15">Q1.5 Latency incident</a></li>
+      <li><a href="#n-errata">Errata found in the book</a></li>
+    </ol>
+  </aside>
+
+  <article class="read">
+    <p class="eyebrow">Study notes · <code>llm_platform/estimation.py</code></p>
+    <h2>Chapter 1: System design thinking</h2>
+    <p class="lede">Everything we worked through in Chapter 1: how to turn "it should be fast and cheap" into defensible numbers for memory, throughput, fleet size and monthly cost. The Calculator tab runs the same math live.</p>
+
+    <section id="n-why">
+      <h3>1. How LLM systems differ from classical ML</h3>
+      <div class="tbl"><table>
+        <tr><th>Property</th><th>What it means for the design</th></tr>
+        <tr><td>Cost is per token</td><td>Plan capacity in <b>tokens/second</b>, not queries/second. One turn can cost 1,000× another.</td></tr>
+        <tr><td>Latency is sequential</td><td>Output is generated one token per step. A 1,000-token answer is 1,000 small computations.</td></tr>
+        <tr><td>Memory is stateful per request</td><td>The KV cache grows with sequence length and caps concurrency on a GPU.</td></tr>
+        <tr><td>Quality is open-ended</td><td>No single accuracy number. You need LLM judges, human review and online metrics.</td></tr>
+      </table></div>
+      <p>The five dimensions you trade against each other: <b>latency</b> (TTFT and time to last token), <b>throughput</b>, <b>cost</b>, <b>quality</b>, and <b>safety</b> (a hard constraint, not a trade-off).</p>
+    </section>
+
+    <section id="n-kv">
+      <h3>2. KV cache estimation</h3>
+      <h4>What the KV cache is</h4>
+      <p>To generate token #501 the model attends to all 500 earlier tokens. Each token gets a Query, a Key and a Value vector. A token's K and V never change once computed, so the engine stores them in GPU memory instead of recomputing them every step. That store is the KV cache. It trades memory for compute, much like Flink keyed state or an incrementally maintained view.</p>
+      <h4>The formula</h4>
+      <div class="kv-formula" aria-label="KV bytes per token formula">
+        <div class="term"><b>2</b><span>K and V</span></div><div class="op">×</div>
+        <div class="term"><b>L</b><span>layers</span></div><div class="op">×</div>
+        <div class="term"><b>H<sub>kv</sub></b><span>KV heads</span></div><div class="op">×</div>
+        <div class="term"><b>d<sub>head</sub></b><span>head dim</span></div><div class="op">×</div>
+        <div class="term"><b>b</b><span>bytes / number</span></div>
+        <div class="op">=</div><div class="term"><b>bytes</b><span>per token</span></div>
+      </div>
+<pre>bytes_per_token = 2 * num_layers * num_kv_heads * head_dim * dtype_bytes
+per_request_gb  = bytes_per_token * seq_len / 1024**3
+usable_gb       = gpu_memory_gb - weights_gb
+max_concurrent  = int(usable_gb / per_request_gb)</pre>
+      <h4>Worked example (Llama 3 8B shape, 4K context, 80 GB GPU)</h4>
+<pre>KV/token     = 2 × 32 × 8 × 128 × 2   = 131,072 B ≈ 128 KB
+Per request  = 128 KB × 4,096 tokens  = 0.5 GB
+Usable       = 80 GB − 16 GB weights  = 64 GB
+Concurrency  = 64 ÷ 0.5               = 128 requests per GPU</pre>
+      <p>Weights are a fixed cost shared by everyone. KV is a per-request cost. Whatever memory the weights leave decides how many requests run at once, which is why the book calls KV "the real concurrency limit".</p>
+      <h4>Why KV heads matter: MHA → GQA → MQA</h4>
+      <p>Only KV heads are cached; query heads are needed only for the current token. Sharing K/V heads across query heads (GQA) shrinks the cache directly.</p>
+      <div class="tbl"><table>
+        <tr><th>Variant</th><th class="num">KV/token</th><th class="num">Per request (4K)</th><th class="num">Concurrent</th></tr>
+        <tr><td>MHA, 32 KV heads</td><td class="num">512 KB</td><td class="num">2.0 GB</td><td class="num">32</td></tr>
+        <tr><td><b>GQA, 8 KV heads</b></td><td class="num">128 KB</td><td class="num">0.5 GB</td><td class="num">128</td></tr>
+        <tr><td>MQA, 1 KV head</td><td class="num">16 KB</td><td class="num">0.0625 GB</td><td class="num">1,024</td></tr>
+      </table></div>
+      <h4>Other levers (same model)</h4>
+      <div class="tbl"><table>
+        <tr><th>Change</th><th class="num">Per request</th><th class="num">Concurrent</th><th>Lesson</th></tr>
+        <tr><td>Context 4K → 2K</td><td class="num">0.25 GB</td><td class="num">256</td><td>Halve context, double users</td></tr>
+        <tr><td>Context 4K → 32K</td><td class="num">4.0 GB</td><td class="num">16</td><td>Why long context costs more</td></tr>
+        <tr><td>FP8 KV cache</td><td class="num">0.25 GB</td><td class="num">256</td><td>KV quantization (Ch. 9)</td></tr>
+      </table></div>
+      <div class="callout warn"><strong>Details in the code</strong>
+        <p><code>hidden_size</code> is accepted but never used. The old formula <code>2 × L × hidden_size × b</code> is only right for MHA; with GQA it overestimates by 4×. GPU memory is in vendor GB while KV uses GiB. The estimate also ignores activations and engine overhead (vLLM reserves ~90%), assumes every request uses the full context, and assumes perfect packing (PagedAttention in Ch. 9 gets close). Treat 128 as an upper bound.</p></div>
+    </section>
+
+    <section id="n-units">
+      <h3>3. Fleet, replica, slot</h3>
+<pre>Fleet (e.g. 4 replicas)
+├── Replica 1  (1+ GPUs holding one full copy of the model)
+│     └── Batch: [slot][slot][slot] ... up to max_concurrent
+├── Replica 2 ...</pre>
+      <div class="tbl"><table>
+        <tr><th>Term</th><th>What it is</th><th>Who decides how many</th></tr>
+        <tr><td>Fleet</td><td>All replicas together</td><td>You: <code>gpus_for_throughput</code>, autoscaling</td></tr>
+        <tr><td>Replica</td><td>One independent copy of the model. Like one vLLM pod.</td><td>You (<code>replicas: N</code>)</td></tr>
+        <tr><td>Slot</td><td>One in-flight request inside a replica's batch</td><td>The engine, limited by KV memory</td></tr>
+      </table></div>
+      <p><b>A replica is not always one GPU.</b> If the weights plus KV room don't fit on one GPU, the model is split across several (tensor parallelism) and those GPUs act as one replica.</p>
+      <div class="tbl"><table>
+        <tr><th>Model</th><th class="num">FP16 weights</th><th>GPUs per replica (80 GB)</th></tr>
+        <tr><td>8B</td><td class="num">16 GB</td><td>1</td></tr>
+        <tr><td>70B</td><td class="num">140 GB</td><td>2 minimum, 4 in practice</td></tr>
+        <tr><td>405B</td><td class="num">810 GB</td><td>8–16</td></tr>
+      </table></div>
+      <p><code>total GPUs = replicas × GPUs per replica</code>. The book's "179 replicas" is 179 GPUs only if each replica is one GPU.</p>
+    </section>
+
+    <section id="n-batch">
+      <h3>4. Batching and its gaps</h3>
+      <p>Each decode step reads all the weights from GPU memory. That read is the slow part, and once done it can be applied to many requests at almost no extra cost. So engines run a <b>batch</b>: one step produces one token for every request in it. A replica's output rate is <code>batch size × steps per second</code>. An empty slot is lost throughput.</p>
+      <h4>Requests finish at different times</h4>
+<pre>Static batching (batch waits for the longest request)
+Slot 1  A █░░░░░░░░░░░░░░░   A: 50 tokens
+Slot 2  B ████░░░░░░░░░░░░   B: 200 tokens
+Slot 3  C ████████████████   C: 800 tokens
+Slot 4  D ██░░░░░░░░░░░░░░   D: 100 tokens
+Useful 1,150 of 3,200 slot-steps = 36% utilization
+
+Continuous batching (vLLM, TGI): a freed slot is refilled at the next step
+Slot 1  A █E█████F█████████
+Slot 4  D ██J██████K███████</pre>
+      <h4>Gaps that remain even with continuous batching</h4>
+      <ol class="tight">
+        <li><b>Nobody waiting.</b> A slot frees during a traffic lull.</li>
+        <li><b>Prefill stalls.</b> A new request must process its whole prompt first, slowing the rest of the batch.</li>
+        <li><b>Free slot, no memory.</b> The KV pool is full, so the scheduler can't admit anyone.</li>
+        <li><b>Operations.</b> Restarts, deploys, warm-up and draining.</li>
+      </ol>
+      <p>The Spark parallel: stragglers hold a stage open while executors sit idle.</p>
+    </section>
+
+    <section id="n-headroom">
+      <h3>5. Headroom: bursts, gaps and p99 tails</h3>
+<pre>effective = per_replica_tokens_per_sec × utilization     # 40 × 0.7 = 28
+replicas  = ceil(target_tokens_per_sec / effective)      # ⌈5000/28⌉ = 179  (vs 125 at 100%)</pre>
+      <ul class="tight">
+        <li><b>Bursts.</b> Traffic arrives randomly. A fleet sized at exactly the average builds a backlog on every spike and can't drain it, like Kafka consumer lag. Predictable daily peaks are a separate adjustment (the ~3× peak factor).</li>
+        <li><b>Batching gaps.</b> The benchmark peak assumes an always-full batch. Production never sustains it.</li>
+        <li><b>p99 tails.</b> Queue wait grows like <code>1/(1−ρ)</code>. Past ~75–80% busy, small load increases cause huge latency increases.</li>
+        <li><b>Failure headroom.</b> Losing a zone shouldn't take everything down.</li>
+      </ul>
+      <div class="tbl"><table>
+        <tr><th>Utilization ρ</th><th class="num">50%</th><th class="num">70%</th><th class="num">80%</th><th class="num">90%</th><th class="num">95%</th><th class="num">99%</th></tr>
+        <tr><td>Wait multiplier 1/(1−ρ)</td><td class="num">2×</td><td class="num">3.3×</td><td class="num">5×</td><td class="num">10×</td><td class="num">20×</td><td class="num">100×</td></tr>
+      </table></div>
+    </section>
+
+    <section id="n-cost">
+      <h3>6. Monthly cost and caching</h3>
+<pre>billable = requests_per_day × (1 − cache_hit_rate)
+per_req  = in/1000 × $in_per_1k + out/1000 × $out_per_1k
+monthly  = billable × per_req × 30</pre>
+      <p>A cache hit in this function skips the whole model call, so it costs $0. That models a <b>response or semantic cache</b>: paraphrases of the same question ("reset my password", "forgot password, help") land close together in embedding space and reuse a stored answer.</p>
+      <div class="tbl"><table>
+        <tr><th>Cache</th><th>Stores</th><th>A hit saves</th></tr>
+        <tr><td>Response / semantic</td><td>Final answers</td><td>The entire call</td></tr>
+        <tr><td>Prompt / prefix (provider)</td><td>KV of a shared prompt prefix</td><td>Input tokens get much cheaper; output still billed</td></tr>
+        <tr><td>KV cache</td><td>K/V inside a running request</td><td>Recomputation. GPU memory, not billing</td></tr>
+      </table></div>
+      <p>Cost of a semantic cache: an embedding call and a vector lookup on every request, staleness (needs a TTL), and false hits that return a wrong answer. Chapter 32 tunes the similarity threshold.</p>
+    </section>
+
+    <section id="n-bigger">
+      <h3>7. Bigger replicas vs. more replicas</h3>
+      <p><code>Total KV memory = total GPU memory − (replicas × weights)</code>. Fewer, bigger replicas hold fewer weight copies. The gain is large when weights crowd each GPU and small otherwise.</p>
+      <div class="tbl"><table>
+        <tr><th>Llama 3 70B on 8 GPUs</th><th class="num">KV left</th><th class="num">Total slots (4K)</th></tr>
+        <tr><td>4 replicas × TP=2</td><td class="num">80 GB</td><td class="num">64</td></tr>
+        <tr><td>2 replicas × TP=4</td><td class="num">360 GB</td><td class="num">288</td></tr>
+        <tr><td>1 replica × TP=8</td><td class="num">500 GB</td><td class="num">400</td></tr>
+      </table></div>
+      <p>For an 8B model the same move gains only 12–22%. The costs of bigger replicas: an all-reduce after every layer (keep TP inside one NVLink node), more slots you may not be able to fill, bigger batches that slow every user, a larger blast radius, and autoscaling in coarse steps. The benefit: lower per-token latency and one shared slot pool.</p>
+      <div class="callout"><strong>Rule of thumb</strong><p>Use the smallest TP that fits the weights, leaves KV for the batch you actually need (Little's Law), and meets per-user latency. Then scale out with replicas.</p></div>
+    </section>
+
+    <section id="n-chain">
+      <h3>8. The estimation chain, worked</h3>
+      <p><b>req/day → tok/s → replicas → $/month.</b> Scenario: an internal support assistant with 2M requests/day, 1,500 input and 400 output tokens, and a 3× peak.</p>
+<pre>Peak output  = 2M × 400 ÷ 86,400 × 3   ≈ 27,778 tok/s
+Peak input   ≈ 104,167 tok/s ;  peak requests ≈ 69.4 req/s</pre>
+      <h4>Path A: API (Claude Sonnet 5.5 at $2 / $10 per M, $0.20 cached)</h4>
+<pre>Input   90B tok × $2/M  = $180,000
+Output  24B tok × $10/M = $240,000      → $420,000 / month
++ prompt cache (1,000-token system prompt)  → $312,000
++ semantic cache, 25% hit                  → $234,000
+Rate limits: ~1.67M output and ~6.25M input tokens per minute at peak</pre>
+      <h4>Path B: self-host Llama 3.1 405B (FP8, one 8×H100 node per replica)</h4>
+<pre>KV/token     = 2 × 126 × 8 × 128 × 2 ≈ 504 KB ;  per request (1,900 tok) ≈ 0.91 GB
+Slots        = (640 × 0.9 − 405) ÷ 0.91 ≈ 187 per replica
+Replicas     = ⌈27,778 ÷ (2,000 × 0.7)⌉ = 20   (2,000 tok/s per replica is an assumed load-test figure)
+GPUs         = 20 × 8 = 160 H100
+Little's Law = 69.4 req/s × 13.8 s ≈ 961 in flight → 48 per replica of 187 → throughput-bound
+Cost         = 160 × 720 h × $4.25 ≈ $489,600  (AWS p5 at $6.88 ≈ $792,576)</pre>
+      <p>Self-hosting loses here because the fleet is sized for peak but billed 24/7. The break-even is utilization. The two models are also not equal in quality, so set the quality bar first.</p>
+    </section>
+
+    <section id="n-q11">
+      <h3>9. Q1.1: Size the fleet for a chat assistant</h3>
+      <div class="qa"><p class="q">1M conversations/day, 800 input and 300 output tokens each, p95 end-to-end latency ≤ 2 s.</p>
+        <h4>The book's answer</h4>
+<pre>Output rate  = 300M ÷ 86,400 ≈ 3,472 tok/s ;  peak ×3 ≈ 10,000 tok/s
+Replicas     = ⌈10,000 ÷ (40 × 0.7)⌉ = 358
+KV check     = 1,100 tok × 128 KB ≈ 0.13 GB/request → not memory-bound
+Latency      = TTFT (queue + prefill) + 300 decode steps ; stream tokens
+Cost         = semantic cache + route easy turns to a small model</pre>
+        <h4>What it glosses over</h4>
+        <p>At 40 tok/s per user, 300 tokens take 7.5 s, which violates the 2 s SLO. And Little's Law gives 34.7 req/s × 2 s ≈ 70 requests in flight across all 358 replicas, which is 0.2 per GPU. The 40 tok/s is one request's speed, not a batching replica's total output.</p>
+        <h4>Corrected approach</h4>
+<pre>Clarify      2 s for first token or full answer? conversation = 1 turn? model size?
+Required     (2.0 − 0.3 s TTFT) → 300 ÷ 1.7 ≈ 176 tok/s per user (≤ 5.7 ms per step)
+Load test    largest batch still ≥ 176 tok/s per user, e.g. 16 → 2,880 tok/s per replica
+Replicas     ⌈10,417 ÷ (2,880 × 0.7)⌉ = 6 ; with N+1 across 2 zones ≈ 8
+Check        96 slots vs ~70 needed ≈ 73% ; KV ≈ 2 GB of 64 GB
+Cost         358 GPUs ≈ $1.1M/month vs 8 GPUs ≈ $24K/month</pre>
+        <p class="small muted">The batch-16 figures are illustrative. The method is to let the latency SLO pick the batch size, then size replicas.</p>
+      </div>
+    </section>
+
+    <section id="n-q13">
+      <h3>10. Q1.3: "Too expensive" at $120K/month</h3>
+      <div class="qa"><p class="q">Before changing the model, what is your diagnostic process?</p>
+<pre>COST = Volume × Tokens × Price × (1 − cache hit rate)</pre>
+        <ol class="tight">
+          <li><b>Define.</b> Too expensive relative to what? Get the unit cost per request, user or resolved ticket.</li>
+          <li><b>Instrument.</b> Log input tokens, output tokens, model, cache outcome, feature and calls per user action.</li>
+          <li><b>Decompose.</b> 500K req/day × (2,500 in, 300 out) at $2/$10 = $0.008/request = $120K. 63% input, 37% output, 0% cache.</li>
+          <li><b>Find waste.</b> Bloated prompts and RAG context, unbounded output, no cache, one big model for everything, agent loops or retries.</li>
+          <li><b>Quantify each lever.</b> Model it with <code>monthly_inference_cost</code> before changing production.</li>
+          <li><b>Change the model last.</b> It's the only lever that removes capability rather than waste.</li>
+        </ol>
+        <div class="tbl"><table>
+          <tr><th>Lever</th><th class="num">Monthly</th><th class="num">Saved</th></tr>
+          <tr><td>Baseline</td><td class="num">$120,000</td><td class="num">—</td></tr>
+          <tr><td>Trim input 2,500 → 1,500</td><td class="num">$90,000</td><td class="num">−25%</td></tr>
+          <tr><td>Cap output 300 → 250</td><td class="num">$82,500</td><td class="num">−8%</td></tr>
+          <tr><td>Semantic cache, 30% hit</td><td class="num">$57,750</td><td class="num">−30%</td></tr>
+          <tr><td>Cascade 60% to a small model (1/10 price)</td><td class="num">$26,565</td><td class="num">−54%</td></tr>
+        </table></div>
+        <p><b>Guardrail:</b> run the eval harness after each change. Trimming can drop the needed chunk, caps can truncate answers, the cache can return false hits, and the cascade can answer when it should escalate.</p>
+      </div>
+    </section>
+
+    <section id="n-q15">
+      <h3>11. Q1.5: p99 jumps 1.8 s → 9 s while GPU utilization drops</h3>
+      <div class="qa"><p class="q">What is your hypothesis and how do you confirm it?</p>
+        <p>Slower responses while GPUs do less work means requests are waiting for something other than compute: a queueing and memory problem.</p>
+<pre>Longer requests (burst or prompt regression)
+ → more KV per request → fewer fit in the batch
+ → new requests queue → p99 explodes
+ → smaller batch → GPU utilization drops</pre>
+        <div class="tbl"><table>
+          <tr><th>Check</th><th>Expect if KV exhaustion</th><th>vLLM metric</th></tr>
+          <tr><td>Avg prompt length</td><td>Jumps with the p99 spike</td><td><code>request_prompt_tokens</code></td></tr>
+          <tr><td>KV occupancy</td><td>Pinned near 100%</td><td><code>gpu_cache_usage_perc</code></td></tr>
+          <tr><td>Queue depth</td><td>Rising</td><td><code>num_requests_waiting</code></td></tr>
+          <tr><td>Running requests</td><td>Down</td><td><code>num_requests_running</code></td></tr>
+          <tr><td>Preemptions</td><td>Spike</td><td><code>num_preemptions_total</code></td></tr>
+          <tr><td>TTFT vs per-token time</td><td>TTFT up, per-token flat</td><td><code>time_to_first_token_seconds</code></td></tr>
+        </table></div>
+        <div class="tbl"><table>
+          <tr><th>Suspect</th><th>Input length</th><th>KV</th><th>Tool latency</th><th>Cache hits</th><th>GPU util</th></tr>
+          <tr><td>KV exhaustion</td><td>⬆</td><td>⬆ ~100%</td><td>normal</td><td>normal</td><td>⬇</td></tr>
+          <tr><td>Slow tool holding slots</td><td>normal</td><td>⬆</td><td>⬆</td><td>normal</td><td>⬇</td></tr>
+          <tr><td>Cache stampede</td><td>normal</td><td>⬆</td><td>normal</td><td>⬇ ~0</td><td>usually ⬆</td></tr>
+        </table></div>
+        <p><b>Mitigate:</b> cap context and <code>max_tokens</code>, admission control and load shedding, roll back a bad deploy, timeouts on tools, autoscale on queue depth (a utilization-based autoscaler would have scaled <i>down</i>), re-warm caches.</p>
+        <div class="callout"><strong>Design lesson</strong><p>Alert and autoscale on KV occupancy, queue depth and TTFT. GPU utilization can fall exactly when the system is in the most trouble.</p></div>
+      </div>
+    </section>
+
+    <section id="n-errata">
+      <h3>12. Errata found in the book</h3>
+      <ul class="tight">
+        <li><b>Page 6 cost example:</b> 1M requests/day, 800 in / 256 out at $0.012/1K, 30% hit is stated as ~$115K/month. <code>monthly_inference_cost</code> returns <b>$266,112</b>, and the arithmetic agrees.</li>
+        <li><b>Per-replica 40 tok/s:</b> used as replica throughput in <code>gpus_for_throughput</code>, but it's a single request's decode speed. With batching a replica produces many times that.</li>
+        <li><b>Q1.1:</b> 40 tok/s per user can't meet a 2 s end-to-end SLO for 300 tokens. The answer reinterprets the SLO as TTFT via streaming without saying so.</li>
+        <li><b><code>kv_cache_memory</code>:</b> the <code>hidden_size</code> parameter is unused (correctly, for GQA models).</li>
+      </ul>
+    </section>
+  </article>
+</div>
+</div>
+
+<!-- ============================ CALCULATOR ============================ -->
+<div class="view" id="view-calculator" role="tabpanel" aria-labelledby="tab-calculator" hidden>
+  <div class="calc">
+    <form class="sheet" id="calcform" autocomplete="off" onsubmit="return false">
+      <div class="preset-row" aria-label="Load a scenario">
+        <span class="eyebrow" style="width:100%">Load a scenario</span>
+        <button type="button" class="chipbtn" data-scn="q11">Q1.1 chat assistant</button>
+        <button type="button" class="chipbtn" data-scn="chain">2M req · 405B</button>
+        <button type="button" class="chipbtn" data-scn="q13">Q1.3 $120K bill</button>
+      </div>
+      <p class="status" id="scn-status" aria-live="polite"></p>
+
+      <fieldset><legend>Workload</legend>
+        <div class="fgrid">
+          <div class="field full"><label for="c-req">Requests per day</label><input type="number" id="c-req" min="0" step="1000"></div>
+          <div class="field"><label for="c-in">Avg input tokens</label><input type="number" id="c-in" min="0"></div>
+          <div class="field"><label for="c-out">Avg output tokens</label><input type="number" id="c-out" min="1"></div>
+          <div class="field"><label for="c-peak">Peak ÷ average</label><input type="number" id="c-peak" min="1" step="0.1"><div class="hint">Daily traffic curve, ~3× for chat</div></div>
+          <div class="field"><label for="c-prefix">Cacheable prefix tokens</label><input type="number" id="c-prefix" min="0"><div class="hint">System prompt and tools, same every request</div></div>
+          <div class="field full"><label for="c-hit">Semantic cache hit rate (%)</label><input type="number" id="c-hit" min="0" max="95" step="1"><div class="hint">Requests answered from cache, no model call</div></div>
+        </div>
+      </fieldset>
+
+      <fieldset><legend>Latency target</legend>
+        <div class="fgrid">
+          <div class="field full"><label for="c-slomode">SLO applies to</label>
+            <select id="c-slomode"><option value="full">Full response (end to end)</option><option value="ttft">First token only (streaming)</option></select></div>
+          <div class="field" data-show="full"><label for="c-slo">p95 end to end (s)</label><input type="number" id="c-slo" min="0.1" step="0.1"></div>
+          <div class="field"><label for="c-ttft">TTFT budget (s)</label><input type="number" id="c-ttft" min="0" step="0.05"></div>
+          <div class="field" data-show="ttft"><label for="c-minspeed">Min streaming speed (tok/s)</label><input type="number" id="c-minspeed" min="1"><div class="hint">Faster than people read</div></div>
+        </div>
+      </fieldset>
+
+      <fieldset><legend>API pricing</legend>
+        <div class="fgrid">
+          <div class="field"><label for="c-pin">$ per M input</label><input type="number" id="c-pin" min="0" step="0.01"></div>
+          <div class="field"><label for="c-pout">$ per M output</label><input type="number" id="c-pout" min="0" step="0.01"></div>
+          <div class="field"><label for="c-pcache">$ per M cached input</label><input type="number" id="c-pcache" min="0" step="0.01"></div>
+          <div class="field" style="align-self:end"><label class="check"><input type="checkbox" id="c-promptcache"> Use provider prompt cache</label></div>
+        </div>
+        <p class="hint">Defaults: Claude Sonnet 5.5 as reported in Oct 2026. Check current pricing.</p>
+      </fieldset>
+
+      <fieldset><legend>Model (self-host)</legend>
+        <div class="fgrid">
+          <div class="field full"><label for="c-model">Preset</label><select id="c-model"></select></div>
+          <div class="field"><label for="c-P">Parameters (B)</label><input type="number" id="c-P" min="0.1" step="0.1"></div>
+          <div class="field"><label for="c-L">Layers L</label><input type="number" id="c-L" min="1"></div>
+          <div class="field"><label for="c-Hkv">KV heads H<sub>kv</sub></label><input type="number" id="c-Hkv" min="1"></div>
+          <div class="field"><label for="c-dh">Head dim d<sub>head</sub></label><input type="number" id="c-dh" min="1"></div>
+          <div class="field"><label for="c-wbytes">Weight precision</label>
+            <select id="c-wbytes"><option value="2">FP16 / BF16 (2 B)</option><option value="1">FP8 (1 B)</option><option value="0.5">INT4 (0.5 B)</option></select></div>
+          <div class="field"><label for="c-kvbytes">KV precision</label>
+            <select id="c-kvbytes"><option value="2">FP16 (2 B)</option><option value="1">FP8 (1 B)</option></select></div>
+        </div>
+      </fieldset>
+
+      <fieldset><legend>Hardware &amp; serving</legend>
+        <div class="fgrid">
+          <div class="field full"><label for="c-gpu">GPU preset</label><select id="c-gpu"></select></div>
+          <div class="field"><label for="c-mem">GPU memory (GB)</label><input type="number" id="c-mem" min="1"></div>
+          <div class="field"><label for="c-bw">Memory bandwidth (TB/s)</label><input type="number" id="c-bw" min="0.1" step="0.01"></div>
+          <div class="field"><label for="c-flops">Peak TFLOPS (at weight dtype)</label><input type="number" id="c-flops" min="1"></div>
+          <div class="field"><label for="c-price">$ per GPU-hour</label><input type="number" id="c-price" min="0" step="0.01"></div>
+          <div class="field"><label for="c-tp">GPUs per replica (TP)</label><select id="c-tp"><option>1</option><option>2</option><option>4</option><option>8</option><option>16</option></select></div>
+          <div class="field"><label for="c-memutil">Engine memory share</label><input type="number" id="c-memutil" min="0.5" max="1" step="0.01"><div class="hint">vLLM default 0.9</div></div>
+          <div class="field"><label for="c-eff">Bandwidth efficiency</label><input type="number" id="c-eff" min="0.1" max="1" step="0.05"></div>
+          <div class="field"><label for="c-mfu">Compute efficiency (MFU)</label><input type="number" id="c-mfu" min="0.05" max="1" step="0.05"></div>
+          <div class="field"><label for="c-batchcap">Engine max batch</label><input type="number" id="c-batchcap" min="1"><div class="hint">vLLM max_num_seqs, default 256</div></div>
+          <div class="field"><label for="c-util">Target utilization</label><input type="number" id="c-util" min="0.1" max="1" step="0.05"></div>
+          <div class="field"><label for="c-red">Spare replicas (N+k)</label><input type="number" id="c-red" min="0"></div>
+          <div class="field full"><label class="check"><input type="checkbox" id="c-gpuprefix"> Prefix caching on the GPU (skip prefill of the cacheable prefix)</label></div>
+        </div>
+      </fieldset>
+
+      <fieldset><legend>Load-test numbers</legend>
+        <label class="check"><input type="checkbox" id="c-measured"> Use measured throughput instead of the physics estimate</label>
+        <div class="fgrid" style="margin-top:8px">
+          <div class="field"><label for="c-mrep">Replica output tok/s</label><input type="number" id="c-mrep" min="1"></div>
+          <div class="field"><label for="c-muser">Per-user tok/s at that load</label><input type="number" id="c-muser" min="1"></div>
+        </div>
+        <p class="hint">A real load test with your prompts beats any estimate. Measured numbers already include prefill cost.</p>
+      </fieldset>
+    </form>
+
+    <div class="results" id="results" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- ============================ INTAKE ============================ -->
+<div class="view" id="view-intake" role="tabpanel" aria-labelledby="tab-intake" hidden>
+  <div class="intake">
+    <aside class="plist">
+      <h3>Saved projects</h3>
+      <ul id="plist"></ul>
+      <p class="small muted" id="plist-empty">No saved projects yet. Fill in the form and press Save project.</p>
+      <div class="btnrow"><button class="btn" id="p-new" type="button">New project</button></div>
+    </aside>
+    <div>
+      <div class="derived" id="derived"></div>
+      <form id="qform" autocomplete="off" onsubmit="return false"></form>
+      <div class="btnrow" style="margin-top:4px">
+        <button class="btn primary" type="button" id="p-save">Save project</button>
+        <button class="btn" type="button" id="p-tocalc">Open in calculator</button>
+        <button class="btn" type="button" id="p-export">Export as Markdown</button>
+        <button class="btn danger" type="button" id="p-delete" hidden>Delete project</button>
+        <button class="btn danger" type="button" id="p-delete-confirm" hidden>Confirm delete</button>
+      </div>
+      <p class="status" id="p-status" aria-live="polite"></p>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+const GiB = 1024**3;
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ---------- presets ---------- */
+const MODELS = {
+  "llama3-8b":   {label:"Llama 3 8B",      P:8.03, L:32,  Hkv:8, dh:128},
+  "qwen25-32b":  {label:"Qwen2.5 32B",     P:32.8, L:64,  Hkv:8, dh:128},
+  "llama3-70b":  {label:"Llama 3 70B",     P:70.6, L:80,  Hkv:8, dh:128},
+  "llama31-405b":{label:"Llama 3.1 405B",  P:405,  L:126, Hkv:8, dh:128},
+  "custom":      {label:"Custom"}
+};
+const GPUS = {
+  "h100":  {label:"H100 SXM · 80 GB",  mem:80,  bw:3.35,  f16:989, f8:1979, price:4.25},
+  "h200":  {label:"H200 · 141 GB",     mem:141, bw:4.8,   f16:989, f8:1979, price:5.50},
+  "a100":  {label:"A100 SXM · 80 GB",  mem:80,  bw:2.04,  f16:312, f8:312,  price:2.00},
+  "l40s":  {label:"L40S · 48 GB",      mem:48,  bw:0.864, f16:362, f8:733,  price:1.50},
+  "custom":{label:"Custom"}
+};
+const TPEFF = {1:1, 2:0.92, 4:0.85, 8:0.78, 16:0.65};
+
+const BASE = {req:1000000,in:800,out:300,peak:3,prefix:0,hit:0,slomode:"full",slo:2,ttft:0.3,minspeed:20,
+  pin:2,pout:10,pcache:0.2,promptcache:true,model:"llama3-8b",P:8.03,L:32,Hkv:8,dh:128,wbytes:1,kvbytes:2,
+  gpu:"h100",mem:80,bw:3.35,flops:1979,price:4.25,tp:1,memutil:0.9,eff:0.6,mfu:0.5,batchcap:256,util:0.7,red:1,gpuprefix:true,
+  measured:false,mrep:2880,muser:180};
+const SCENARIOS = {
+  q11:  {label:"Q1.1 chat assistant", v:{}},
+  chain:{label:"2M req · 405B", v:{req:2000000,in:1500,out:400,prefix:1000,hit:25,slomode:"ttft",ttft:1,minspeed:20,
+          model:"llama31-405b",P:405,L:126,Hkv:8,dh:128,wbytes:1,kvbytes:2,tp:8,red:0,measured:true,mrep:2000,muser:30}},
+  q13:  {label:"Q1.3 $120K bill", v:{req:500000,in:2500,out:300,prefix:0,hit:0,promptcache:false,slomode:"ttft",ttft:0.5,
+          model:"llama3-70b",P:70.6,L:80,Hkv:8,dh:128,wbytes:1,tp:4,red:1}}
+};
+
+const FIELDS = ["req","in","out","peak","prefix","hit","slomode","slo","ttft","minspeed","pin","pout","pcache","promptcache",
+  "model","P","L","Hkv","dh","wbytes","kvbytes","gpu","mem","bw","flops","price","tp","memutil","eff","mfu","batchcap","util","red","gpuprefix",
+  "measured","mrep","muser"];
+
+/* ---------- formatting ---------- */
+const nf0 = new Intl.NumberFormat("en-US",{maximumFractionDigits:0});
+const nf1 = new Intl.NumberFormat("en-US",{maximumFractionDigits:1});
+const nf2 = new Intl.NumberFormat("en-US",{maximumFractionDigits:2});
+const n0 = x => isFinite(x)? nf0.format(x) : "—";
+const n1 = x => isFinite(x)? nf1.format(x) : "—";
+const n2 = x => isFinite(x)? nf2.format(x) : "—";
+const usd = x => isFinite(x)? "$" + nf0.format(Math.round(x)) : "—";
+const usd2 = x => isFinite(x)? "$" + (x<1? x.toFixed(4) : nf2.format(x)) : "—";
+const big = x => { if(!isFinite(x)) return "—"; const a=Math.abs(x);
+  if(a>=1e9) return nf2.format(x/1e9)+"B"; if(a>=1e6) return nf2.format(x/1e6)+"M"; if(a>=1e4) return nf1.format(x/1e3)+"K"; return nf0.format(x); };
+const usdK = x => { if(!isFinite(x)) return "—"; if(Math.abs(x)>=1e6) return "$"+nf2.format(x/1e6)+"M"; if(Math.abs(x)>=1e3) return "$"+nf0.format(x/1e3)+"K"; return "$"+nf0.format(x); };
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const bytesH = b => b>=GiB? n2(b/GiB)+" GB" : b>=1024**2? n1(b/1024**2)+" MB" : n0(b/1024)+" KB";
+
+/* ---------- calculator state ---------- */
+const S = Object.assign({}, BASE);
+
+function fillSelects(){
+  $("#c-model").innerHTML = Object.entries(MODELS).map(([k,m])=>`<option value="${k}">${esc(m.label)}</option>`).join("");
+  $("#c-gpu").innerHTML = Object.entries(GPUS).map(([k,g])=>`<option value="${k}">${esc(g.label)}</option>`).join("");
+}
+function writeForm(){
+  FIELDS.forEach(f=>{ const el=$("#c-"+f); if(!el) return;
+    if(el.type==="checkbox") el.checked=!!S[f]; else el.value = S[f]; });
+  syncSloVisibility();
+}
+function readField(f){
+  const el=$("#c-"+f); if(!el) return;
+  if(el.type==="checkbox") S[f]=el.checked;
+  else if(el.tagName==="SELECT" && (f==="slomode"||f==="model"||f==="gpu")) S[f]=el.value;
+  else { const v=parseFloat(el.value); S[f]= isFinite(v)? v : 0; }
+}
+function syncSloVisibility(){
+  $$("[data-show]").forEach(el=>{ el.hidden = el.dataset.show!==S.slomode; });
+}
+function flopsFor(gpuKey, wbytes){ const g=GPUS[gpuKey]; if(!g||!g.f16) return S.flops; return wbytes<2? g.f8 : g.f16; }
+
+function onInput(e){
+  const id=e.target.id; if(!id||!id.startsWith("c-")) return;
+  const f=id.slice(2); readField(f);
+  if(f==="model" && MODELS[S.model] && MODELS[S.model].P){ Object.assign(S, {P:MODELS[S.model].P,L:MODELS[S.model].L,Hkv:MODELS[S.model].Hkv,dh:MODELS[S.model].dh}); writeForm(); }
+  else if(["P","L","Hkv","dh"].includes(f)){ S.model="custom"; $("#c-model").value="custom"; }
+  if(f==="gpu" && GPUS[S.gpu] && GPUS[S.gpu].mem){ const g=GPUS[S.gpu]; Object.assign(S,{mem:g.mem,bw:g.bw,price:g.price,flops:flopsFor(S.gpu,S.wbytes)}); writeForm(); }
+  else if(["mem","bw","flops"].includes(f)){ S.gpu="custom"; $("#c-gpu").value="custom"; }
+  if(f==="wbytes" && GPUS[S.gpu] && GPUS[S.gpu].mem){ S.flops=flopsFor(S.gpu,S.wbytes); $("#c-flops").value=S.flops; }
+  if(f==="slomode") syncSloVisibility();
+  scheduleRender();
+}
+let raf=0; function scheduleRender(){ cancelAnimationFrame(raf); raf=requestAnimationFrame(render); }
+
+/* ---------- the math ---------- */
+function compute(s){
+  const r = {s};
+  r.avgReq = s.req/86400; r.peakReq = r.avgReq*s.peak;
+  r.avgOut = s.req*s.out/86400; r.peakOut = r.avgOut*s.peak;
+  r.avgIn  = s.req*s.in/86400;  r.peakIn  = r.avgIn*s.peak;
+  // KV + memory
+  r.kvTok = 2*s.L*s.Hkv*s.dh*s.kvbytes;
+  r.ctx = s.in + s.out;
+  r.kvReq = r.kvTok*r.ctx/GiB;
+  r.wBytes = s.P*1e9*s.wbytes; r.wGiB = r.wBytes/GiB;
+  r.memRep = s.tp*s.mem*s.memutil;
+  r.free = r.memRep - r.wGiB;
+  r.fits = r.free > 0 && r.kvReq > 0;
+  r.maxSlots = r.fits ? Math.floor(r.free / r.kvReq) : 0;
+  r.cap = Math.min(r.maxSlots, Math.max(1,Math.floor(s.batchcap)));
+  // latency requirement
+  if(s.slomode==="full"){ r.decodeBudget = s.slo - s.ttft; r.reqSpeed = r.decodeBudget>0 ? s.out/r.decodeBudget : Infinity; }
+  else { r.decodeBudget = NaN; r.reqSpeed = s.minspeed; }
+  // physics
+  r.tpEff = TPEFF[s.tp] || 0.7;
+  r.effBW = s.tp*s.bw*1e12*s.eff*r.tpEff;
+  r.effFlops = s.tp*s.flops*1e12*s.mfu*r.tpEff;
+  r.kvAvgBytes = r.kvTok*(s.in + s.out/2);
+  r.stepMem = b => (r.wBytes + b*r.kvAvgBytes)/r.effBW;
+  r.stepCmp = b => 2*s.P*1e9*b/r.effFlops;
+  r.step = b => Math.max(r.stepMem(b), r.stepCmp(b));
+  r.prefillTok = Math.max(0, s.in - (s.gpuprefix ? Math.min(s.prefix,s.in) : 0));
+  r.prefillTime = 2*s.P*1e9*r.prefillTok / r.effFlops;
+  r.ttftEst = r.prefillTime;
+  if(s.measured){
+    r.perUser = s.muser; r.repTps = s.mrep; r.bStar = Math.max(1, Math.round(s.mrep/Math.max(1,s.muser)));
+    r.feasible = s.muser >= r.reqSpeed - 1e-9; r.limit = "measured";
+    r.stepAt = 1/s.muser;
+  } else if(r.cap>0){
+    let b=0; for(let i=1;i<=r.cap;i++){ if(1/r.step(i) >= r.reqSpeed - 1e-9) b=i; else break; }
+    r.feasible = b>0; r.bStar = Math.max(b,1);
+    r.perUser = 1/r.step(r.bStar); r.repTps = r.bStar/r.step(r.bStar); r.stepAt = r.step(r.bStar);
+    r.limit = !r.feasible ? "slo" : (b===r.cap ? (r.cap===r.maxSlots ? "memory" : "engine") : "latency");
+    r.computeBound = r.stepCmp(r.bStar) > r.stepMem(r.bStar);
+  } else { r.feasible=false; r.bStar=0; r.perUser=0; r.repTps=0; r.limit="nofit"; }
+  // replicas
+  const selfOK = r.fits && r.repTps>0;
+  r.selfOK = selfOK;
+  if(selfOK){
+    r.decodeLoad = r.peakOut / r.repTps;
+    r.prefillLoad = s.measured ? 0 : r.peakReq * r.prefillTime;
+    r.rawLoad = r.decodeLoad + r.prefillLoad;
+    r.replicas = Math.max(1, Math.ceil(r.rawLoad / s.util));
+    r.fleet = r.replicas + Math.max(0,Math.round(s.red));
+    r.gpus = r.fleet * s.tp;
+    r.avgReplicas = Math.max(1, Math.ceil(r.rawLoad / s.peak / s.util)) + Math.max(0,Math.round(s.red));
+    r.duration = (s.measured ? s.ttft : r.ttftEst) + s.out / r.perUser;
+    r.conc = r.peakReq * r.duration;
+    r.slots = r.replicas * r.bStar;
+    r.load = r.conc / r.slots;
+    r.naive = Math.max(1, Math.ceil(r.peakOut / (r.perUser * s.util)));
+    r.selfMonthly = r.gpus * s.price * 720;
+    r.selfAvgMonthly = r.avgReplicas * s.tp * s.price * 720;
+  }
+  // API
+  const hit = Math.min(Math.max(s.hit,0),95)/100;
+  r.hit = hit;
+  r.cached = s.promptcache ? Math.min(s.prefix, s.in) : 0;
+  r.perReqRaw = (s.in*s.pin + s.out*s.pout)/1e6;
+  r.perReqPC  = ((s.in - r.cached)*s.pin + r.cached*s.pcache + s.out*s.pout)/1e6;
+  r.inCostReq = ((s.in - r.cached)*s.pin + r.cached*s.pcache)/1e6;
+  r.outCostReq = s.out*s.pout/1e6;
+  r.apiRaw = s.req*30*r.perReqRaw;
+  r.apiPC  = s.req*30*r.perReqPC;
+  r.apiMonthly = s.req*(1-hit)*30*r.perReqPC;
+  r.itpm = r.peakIn*(1-hit)*60; r.otpm = r.peakOut*(1-hit)*60;
+  // semantic cache also reduces self-host load
+  if(selfOK && hit>0){
+    r.replicasCache = Math.max(1, Math.ceil(r.rawLoad*(1-hit)/s.util));
+    r.gpusCache = (r.replicasCache + Math.max(0,Math.round(s.red)))*s.tp;
+    r.selfMonthlyCache = r.gpusCache*s.price*720;
+  }
+  return r;
+}
+
+/* ---------- rendering ---------- */
+function line(k,f,v,cls){ return `<div class="line ${cls||""}"><span class="k">${k}</span><span class="f">${f||""}</span><span class="v">${v}</span></div>`; }
+function pill(cls,text){ return `<span class="pill ${cls}">${text}</span>`; }
+
+function render(){
+  const r = compute(S), s=S;
+  const out=[];
+  // summary strip
+  const selfCost = r.selfOK ? usdK(r.selfMonthly) : "—";
+  out.push(`<div class="summary">
+    <div class="cell"><div class="lab">Peak output rate</div><div class="val">${big(r.peakOut)}</div><div class="note">tok/s · avg ${big(r.avgOut)}</div></div>
+    <div class="cell"><div class="lab">Self-host fleet</div><div class="val">${r.selfOK? n0(r.gpus)+" GPU"+(r.gpus===1?"":"s"):"—"}</div><div class="note">${r.selfOK? n0(r.fleet)+" replica"+(r.fleet===1?"":"s")+" × "+s.tp+" GPU":"model doesn't fit"}</div></div>
+    <div class="cell"><div class="lab">Self-host / month</div><div class="val">${selfCost}</div><div class="note">sized for peak, billed 24/7</div></div>
+    <div class="cell"><div class="lab">API / month</div><div class="val">${usdK(r.apiMonthly)}</div><div class="note">after ${s.promptcache&&r.cached?"prompt cache + ":""}${n0(s.hit)}% semantic cache</div></div>
+  </div>`);
+  // status pills
+  const pills=[];
+  pills.push(r.fits ? pill("good",`Model fits: ${n1(r.free)} GB left for KV per replica`) : pill("bad",`Model doesn't fit: weights ${n1(r.wGiB)} GB > ${n1(r.memRep)} GB usable. Raise TP or lower precision`));
+  if(r.fits){
+    if(!isFinite(r.reqSpeed)) pills.push(pill("bad","SLO impossible: TTFT budget ≥ total budget"));
+    else if(r.feasible) pills.push(pill("good",`Latency SLO met: ${n0(r.perUser)} tok/s per user ≥ ${n0(r.reqSpeed)} needed`));
+    else pills.push(pill("bad",`Latency SLO missed: best ${n0(r.perUser)} tok/s per user < ${n0(r.reqSpeed)} needed`));
+    const lim = {latency:["good","Batch limited by latency SLO (throughput-bound)"],memory:["warn","Batch limited by KV memory (memory-bound)"],engine:["warn","Batch limited by engine max batch"],measured:["good","Using load-test numbers"],slo:["bad","No batch size meets the SLO"]}[r.limit];
+    if(lim) pills.push(pill(lim[0],lim[1]));
+    if(r.selfOK){
+      const L=r.load; pills.push(L>0.85? pill("bad",`Slot load ${n0(L*100)}%: queueing risk`) : L>0.75? pill("warn",`Slot load ${n0(L*100)}%`) : pill("good",`Slot load ${n0(L*100)}% (Little's Law)`));
+    }
+    if(!s.measured && s.slomode==="full" && r.ttftEst > s.ttft) pills.push(pill("warn",`Prefill ${n0(r.ttftEst*1000)} ms exceeds TTFT budget`));
+  }
+  out.push(`<div class="pills">${pills.join("")}</div>`);
+
+  // Step 1
+  out.push(`<section class="ws"><h3><span class="eyebrow">Step 1</span> Demand → token rate</h3><div class="body"><div class="lines">
+    ${line("Avg requests/s", `${n0(s.req)} ÷ 86,400`, n2(r.avgReq))}
+    ${line("Peak requests/s", `${n2(r.avgReq)} × ${s.peak}`, n2(r.peakReq))}
+    ${line("Avg output tok/s", `${n0(s.req)} × ${n0(s.out)} ÷ 86,400`, n0(r.avgOut))}
+    ${line("Peak output tok/s", `${n0(r.avgOut)} × ${s.peak}`, n0(r.peakOut),"total")}
+    ${line("Peak input tok/s", `${n0(s.req)} × ${n0(s.in)} ÷ 86,400 × ${s.peak}`, n0(r.peakIn))}
+  </div></div></section>`);
+
+  // Step 2 latency
+  let lat;
+  if(s.slomode==="full"){
+    lat = line("Decode budget", `${s.slo} s − ${s.ttft} s TTFT`, isFinite(r.decodeBudget)? n2(r.decodeBudget)+" s":"—")
+        + line("Required per-user speed", `${n0(s.out)} tokens ÷ ${n2(r.decodeBudget)} s`, n0(r.reqSpeed)+" tok/s","total")
+        + line("Max time per decode step", `1 ÷ ${n0(r.reqSpeed)}`, isFinite(r.reqSpeed)? n2(1000/r.reqSpeed)+" ms":"—");
+  } else {
+    lat = line("Required per-user speed", "streaming: faster than reading", n0(r.reqSpeed)+" tok/s","total")
+        + line("TTFT budget", "queue + prefill", n2(s.ttft)+" s");
+  }
+  if(!s.measured) lat += line("Estimated prefill (TTFT floor)", `2 × ${n1(s.P)}B × ${n0(r.prefillTok)} tok ÷ effective FLOPS`, n0(r.prefillTime*1000)+" ms");
+  out.push(`<section class="ws"><h3><span class="eyebrow">Step 2</span> Latency SLO → per-user speed</h3><div class="body"><div class="lines">${lat}</div></div></section>`);
+
+  // Step 3 KV
+  out.push(`<section class="ws"><h3><span class="eyebrow">Step 3</span> KV cache → slots per replica</h3><div class="body"><div class="lines">
+    ${line("KV bytes per token", `2 × ${s.L} × ${s.Hkv} × ${s.dh} × ${s.kvbytes}`, n0(r.kvTok)+" B ("+bytesH(r.kvTok)+")")}
+    ${line("KV per request", `${bytesH(r.kvTok)} × ${n0(r.ctx)} tokens`, n2(r.kvReq)+" GB")}
+    ${line("Weights", `${n1(s.P)}B × ${s.wbytes} B`, n1(r.wGiB)+" GB")}
+    ${line("Usable memory per replica", `${s.tp} × ${s.mem} GB × ${s.memutil}`, n1(r.memRep)+" GB")}
+    ${line("Free for KV", `${n1(r.memRep)} − ${n1(r.wGiB)}`, n1(r.free)+" GB")}
+    ${line("Max slots (memory)", `${n1(r.free)} ÷ ${n2(r.kvReq)}`, r.fits? n0(r.maxSlots):"—","total")}
+  </div><p class="small muted" style="margin:8px 0 0">Same formula as <code>kv_cache_memory</code>. GB here follows the book's convention (KV in GiB).</p></div></section>`);
+
+  // Step 4 batching
+  let b4="";
+  if(r.fits && r.cap>0 || s.measured){
+    if(s.measured){
+      b4 = `<div class="lines">${line("Replica throughput (measured)","from load test", n0(r.repTps)+" tok/s","total")}${line("Per-user speed (measured)","", n0(r.perUser)+" tok/s")}${line("Implied batch size", `${n0(r.repTps)} ÷ ${n0(r.perUser)}`, n0(r.bStar))}</div>`;
+    } else {
+      b4 = `<div class="lines">
+        ${line("Effective bandwidth", `${s.tp} × ${s.bw} TB/s × ${s.eff} × ${r.tpEff} TP`, n2(r.effBW/1e12)+" TB/s")}
+        ${line("Step time at batch b", "(weights + b × avg KV) ÷ bandwidth", "")}
+        ${line("Largest batch meeting SLO", `per-user ≥ ${n0(r.reqSpeed)} tok/s, ≤ ${n0(r.cap)} slots`, r.feasible? n0(r.bStar) : "none","total")}
+        ${line("Step time at that batch", r.computeBound? "compute-bound" : "memory-bandwidth-bound", n2(r.stepAt*1000)+" ms")}
+        ${line("Per-user speed", `1 ÷ ${n2(r.stepAt*1000)} ms`, n0(r.perUser)+" tok/s")}
+        ${line("Replica throughput", `${n0(r.bStar)} × ${n0(r.perUser)}`, n0(r.repTps)+" tok/s","total")}
+      </div>
+      <div class="charts"><div class="chart" id="ch-user"></div><div class="chart" id="ch-rep"></div></div>
+      <p class="small muted" style="margin:8px 0 0">Physics estimate from memory bandwidth and FLOPS. Replace with load-test numbers before committing to a budget.</p>`;
+    }
+  } else b4 = `<p class="muted">The model doesn't fit in one replica's memory. Increase GPUs per replica (TP) or lower the weight precision.</p>`;
+  out.push(`<section class="ws"><h3><span class="eyebrow">Step 4</span> Batch size → replica throughput</h3><div class="body">${b4}</div></section>`);
+
+  // Step 5 replicas
+  if(r.selfOK){
+    out.push(`<section class="ws"><h3><span class="eyebrow">Step 5</span> Token rate → replicas</h3><div class="body"><div class="lines">
+      ${line("Decode load", `${n0(r.peakOut)} ÷ ${n0(r.repTps)}`, n2(r.decodeLoad)+" replicas")}
+      ${s.measured? line("Prefill load","included in load test","—") : line("Prefill load", `${n2(r.peakReq)} req/s × ${n0(r.prefillTime*1000)} ms`, n2(r.prefillLoad)+" replicas")}
+      ${line("With headroom", `⌈${n2(r.rawLoad)} ÷ ${s.util}⌉`, n0(r.replicas)+" replicas")}
+      ${line("Plus spares", `${n0(r.replicas)} + ${n0(s.red)}`, n0(r.fleet)+" replicas")}
+      ${line("Total GPUs", `${n0(r.fleet)} × ${s.tp}`, n0(r.gpus),"total")}
+    </div>
+    <h4>Cross-check with Little's Law</h4>
+    <div class="lines">
+      ${line("Time per request", `${n2(s.measured? s.ttft : r.ttftEst)} s + ${n0(s.out)} ÷ ${n0(r.perUser)}`, n2(r.duration)+" s")}
+      ${line("Requests in flight at peak", `${n2(r.peakReq)} × ${n2(r.duration)}`, n0(r.conc))}
+      ${line("Slots available", `${n0(r.replicas)} × ${n0(r.bStar)}`, n0(r.slots))}
+      ${line("Slot load", `${n0(r.conc)} ÷ ${n0(r.slots)}`, n0(r.load*100)+"%","total")}
+    </div>
+    <div class="callout warn" style="margin:12px 0 0"><strong>Pitfall check</strong><p>The naive formula that treats per-user speed as replica throughput, <code>⌈${n0(r.peakOut)} ÷ (${n0(r.perUser)} × ${s.util})⌉</code>, gives <b>${n0(r.naive)}</b> replicas instead of ${n0(r.replicas)}. That's the mistake in the book's Q1.1 answer.</p></div>
+    </div></section>`);
+  }
+
+  // Step 6 cost
+  const apiShareIn = r.perReqPC>0 ? r.inCostReq/r.perReqPC : 0;
+  const maxC = Math.max(r.apiRaw, r.selfOK? r.selfMonthly:0, 1);
+  const barRow = (lab,v,note)=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;gap:8px;font-size:13px"><span>${lab}</span><span class="mono">${usd(v)}</span></div><div class="bar"><i style="width:${Math.max(1,Math.min(100,v/maxC*100))}%"></i></div>${note?`<div class="hint">${note}</div>`:""}</div>`;
+  let selfBlock = r.selfOK ? `
+      ${barRow("Fleet sized for peak, 24/7", r.selfMonthly, `${n0(r.gpus)} GPUs × $${n2(s.price)}/h × 720 h`)}
+      ${r.selfMonthlyCache? barRow(`With ${n0(s.hit)}% semantic cache`, r.selfMonthlyCache, `${n0(r.gpusCache)} GPUs`) : ""}
+      ${barRow("If the fleet tracked demand perfectly", r.selfAvgMonthly, "Lower bound: autoscaled to average load")}
+      <div class="hint">Per 1K requests: ${usd2(r.selfMonthly/(s.req*30)*1000)}</div>` : `<p class="muted small">No self-host estimate: the model doesn't fit.</p>`;
+  out.push(`<section class="ws"><h3><span class="eyebrow">Step 6</span> → $ per month</h3><div class="body">
+    <div class="cmp">
+      <div><div class="eyebrow">API</div><div class="big">${usd(r.apiMonthly)}</div>
+        ${barRow("No caching", r.apiRaw, `${n0(s.req)} × 30 × ${usd2(r.perReqRaw)}`)}
+        ${s.promptcache&&r.cached? barRow(`+ prompt cache (${n0(r.cached)} tok)`, r.apiPC, `${usd2(r.perReqPC)} per request`) : ""}
+        ${barRow(`+ semantic cache (${n0(s.hit)}% hit)`, r.apiMonthly, `× (1 − ${n2(r.hit)})`)}
+        <div class="hint">Input ${n0(apiShareIn*100)}% · output ${n0((1-apiShareIn)*100)}% of spend. Per 1K requests: ${usd2(r.apiMonthly/(s.req*30)*1000)}</div>
+        <div class="hint">Peak rate limits needed: ${big(r.itpm)} input and ${big(r.otpm)} output tokens per minute</div>
+      </div>
+      <div><div class="eyebrow">Self-host</div><div class="big">${r.selfOK? usd(r.selfMonthly):"—"}</div>${selfBlock}</div>
+    </div>
+    ${r.selfOK? `<p style="margin:12px 0 0">${r.apiMonthly<=r.selfMonthly ? `<b>API is cheaper</b> by ${usd(r.selfMonthly-r.apiMonthly)}/month (${n1(r.selfMonthly/Math.max(1,r.apiMonthly))}×). Self-hosting pays off when GPUs stay busy around the clock or a smaller model can do the job.` : `<b>Self-host is cheaper</b> by ${usd(r.apiMonthly-r.selfMonthly)}/month (${n1(r.apiMonthly/Math.max(1,r.selfMonthly))}×), before engineering and on-call costs.`} Compare only models that meet the same quality bar.</p>`:""}
+  </div></section>`);
+
+  $("#results").innerHTML = out.join("");
+  if(!s.measured && r.fits && r.cap>0) drawCharts(r);
+}
+
+/* ---------- charts (small multiples, shared x = batch size) ---------- */
+function drawCharts(r){
+  const maxB = Math.max(4, Math.min(r.cap, Math.max(16, Math.ceil((r.feasible? r.bStar:1)*2.2)), 512));
+  const pts=[]; for(let b=1;b<=maxB;b++){ const st=r.step(b); pts.push({b, user:1/st, rep:b/st}); }
+  chart($("#ch-user"), pts, "user", {title:"Per-user speed", sub:"tok/s per request, by batch size", threshold:isFinite(r.reqSpeed)?r.reqSpeed:null, thLabel:"SLO", marker:r.feasible?r.bStar:null});
+  chart($("#ch-rep"), pts, "rep", {title:"Replica throughput", sub:"total tok/s, by batch size", marker:r.feasible?r.bStar:null});
+}
+function niceMax(v){ if(v<=0) return 1; const p=Math.pow(10,Math.floor(Math.log10(v))); const m=v/p; return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p; }
+function chart(el, pts, key, o){
+  if(!el) return;
+  const W=320,H=180,ml=46,mr=12,mt=10,mb=28, iw=W-ml-mr, ih=H-mt-mb;
+  const xmax=pts[pts.length-1].b, ymaxRaw=Math.max(...pts.map(p=>p[key]), o.threshold||0)*1.05, ymax=niceMax(ymaxRaw);
+  const x=b=>ml+(b-1)/(Math.max(1,xmax-1))*iw, y=v=>mt+ih-(v/ymax)*ih;
+  const ticks=[0,ymax/4,ymax/2,ymax*3/4,ymax];
+  const xt=[1,Math.round(xmax/4),Math.round(xmax/2),Math.round(xmax*3/4),xmax].filter((v,i,a)=>v>=1&&a.indexOf(v)===i);
+  const path=pts.map((p,i)=>(i?"L":"M")+x(p.b).toFixed(1)+" "+y(p[key]).toFixed(1)).join(" ");
+  const area=path+` L${x(xmax).toFixed(1)} ${y(0)} L${x(1).toFixed(1)} ${y(0)} Z`;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title)} by batch size">`;
+  ticks.forEach(t=>{ svg+=`<line x1="${ml}" x2="${W-mr}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line-2)" stroke-width="1"/><text x="${ml-6}" y="${y(t)+3.5}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="var(--f-mono)">${big(t)}</text>`; });
+  xt.forEach(t=>{ svg+=`<text x="${x(t)}" y="${H-10}" text-anchor="middle" font-size="10" fill="var(--muted)" font-family="var(--f-mono)">${t}</text>`; });
+  svg+=`<text x="${ml+iw/2}" y="${H}" text-anchor="middle" font-size="10" fill="var(--muted)">batch size (concurrent requests)</text>`;
+  svg+=`<path d="${area}" fill="var(--accent)" fill-opacity="0.08" stroke="none"/>`;
+  svg+=`<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>`;
+  if(o.threshold!=null && o.threshold<=ymax){ svg+=`<line x1="${ml}" x2="${W-mr}" y1="${y(o.threshold)}" y2="${y(o.threshold)}" stroke="var(--bad)" stroke-width="1.5" stroke-dasharray="4 3"/><text x="${W-mr}" y="${y(o.threshold)-4}" text-anchor="end" font-size="10" fill="var(--bad)" font-weight="600">${o.thLabel} ${n0(o.threshold)}</text>`; }
+  if(o.marker){ const p=pts[o.marker-1]; if(p){ svg+=`<line x1="${x(p.b)}" x2="${x(p.b)}" y1="${mt}" y2="${y(0)}" stroke="var(--ink-2)" stroke-width="1" stroke-dasharray="2 3"/><circle cx="${x(p.b)}" cy="${y(p[key])}" r="4.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>`; } }
+  svg+=`<line id="hx" x1="0" x2="0" y1="${mt}" y2="${y(0)}" stroke="var(--ink-2)" stroke-width="1" opacity="0"/><circle id="hc" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2" opacity="0"/>`;
+  svg+=`<rect x="${ml}" y="${mt}" width="${iw}" height="${ih}" fill="transparent" class="hit"/>`;
+  svg+=`</svg>`;
+  el.innerHTML=`<div class="ct">${esc(o.title)}</div><div class="cs">${esc(o.sub)}${o.marker?` · chosen batch ${o.marker}`:""}</div>${svg}<div class="tip" hidden></div>`;
+  const s=el.querySelector("svg"), tip=el.querySelector(".tip"), hx=s.querySelector("#hx"), hc=s.querySelector("#hc"), hit=s.querySelector(".hit");
+  const move=ev=>{ const rc=s.getBoundingClientRect(); const px=(ev.clientX-rc.left)/rc.width*W;
+    const b=Math.min(xmax,Math.max(1,Math.round(1+(px-ml)/iw*(xmax-1)))); const p=pts[b-1];
+    hx.setAttribute("x1",x(b)); hx.setAttribute("x2",x(b)); hx.setAttribute("opacity","0.5");
+    hc.setAttribute("cx",x(b)); hc.setAttribute("cy",y(p[key])); hc.setAttribute("opacity","1");
+    tip.hidden=false; tip.textContent=`batch ${b} · ${n0(p[key])} tok/s`;
+    tip.style.left=(x(b)/W*rc.width)+"px"; tip.style.top=(y(p[key])/H*rc.height+38)+"px"; };
+  hit.addEventListener("pointermove",move); hit.addEventListener("pointerdown",move);
+  hit.addEventListener("pointerleave",()=>{ tip.hidden=true; hx.setAttribute("opacity","0"); hc.setAttribute("opacity","0"); });
+}
+
+/* ---------- tabs ---------- */
+const VIEWS=["notes","calculator","intake"];
+function show(v){ if(!VIEWS.includes(v)) v="notes";
+  VIEWS.forEach(n=>{ $("#view-"+n).hidden = n!==v; $("#tab-"+n).setAttribute("aria-selected", n===v?"true":"false"); });
+  try{ localStorage.setItem("ch1-tab", v); }catch(e){}
+  if(v==="calculator") scheduleRender();
+}
+$$("nav.tabs button").forEach(b=>b.addEventListener("click",()=>{ show(b.dataset.view); try{ history.replaceState(null,"","#"+b.dataset.view);}catch(e){} window.scrollTo({top:0}); }));
+
+/* ---------- scenarios ---------- */
+$$("[data-scn]").forEach(b=>b.addEventListener("click",()=>{
+  const sc=SCENARIOS[b.dataset.scn]; Object.keys(S).forEach(k=>delete S[k]); Object.assign(S, BASE, sc.v);
+  if(GPUS[S.gpu]&&GPUS[S.gpu].mem) S.flops=flopsFor(S.gpu,S.wbytes);
+  writeForm(); render(); $("#scn-status").textContent = `Loaded: ${sc.label}`;
+}));
+
+/* ============================ INTAKE ============================ */
+const Q = [
+  {t:"Product and purpose", d:"What are we building, for whom, and how will we know it works?", f:[
+    {id:"name", l:"Project name", type:"text", def:"Support chat assistant", wide:false},
+    {id:"owner", l:"Owner / team", type:"text", def:""},
+    {id:"users", l:"Who uses it", type:"select", o:["Internal employees","External customers","Both"], def:"External customers"},
+    {id:"pattern", l:"Interaction pattern", type:"select", o:["Chat assistant","RAG question answering","Agent with tools","Batch processing","Classification / extraction"], def:"Chat assistant"},
+    {id:"problem", l:"Problem it solves", type:"textarea", def:"Answer common account and billing questions without a human agent.", wide:true},
+    {id:"success", l:"Business success metric", type:"textarea", def:"30% of tickets resolved without escalation; CSAT ≥ 4.2.", wide:true}]},
+  {t:"Traffic", d:"Volume drives everything downstream. Count model calls, not just conversations.", f:[
+    {id:"convs", l:"Conversations per day", type:"number", def:1000000, feeds:"req"},
+    {id:"turns", l:"Model calls per conversation", type:"number", def:1, feeds:"req", h:"Turns, plus agent or retry calls"},
+    {id:"peak", l:"Peak ÷ average traffic", type:"number", def:3, feeds:"peak", step:0.1},
+    {id:"growth", l:"Expected growth in 12 months (%)", type:"number", def:50}]},
+  {t:"Tokens per call", d:"Break the prompt down. The parts tell you what can be cached or trimmed.", f:[
+    {id:"sys", l:"System prompt + tool definitions", type:"number", def:300, feeds:"in, prefix", h:"Identical every call → cacheable"},
+    {id:"rag", l:"Retrieved context (RAG)", type:"number", def:300, feeds:"in"},
+    {id:"hist", l:"Conversation history", type:"number", def:100, feeds:"in"},
+    {id:"umsg", l:"User message", type:"number", def:100, feeds:"in"},
+    {id:"outtok", l:"Average output tokens", type:"number", def:300, feeds:"out"},
+    {id:"maxout", l:"Output cap (max_tokens)", type:"number", def:1024}]},
+  {t:"Latency", d:"Ask whether the target is the first token or the full answer. It changes the design.", f:[
+    {id:"slomode", l:"Latency target applies to", type:"select", o:[["full","Full response"],["ttft","First token (streaming)"]], def:"full", feeds:"SLO"},
+    {id:"slo", l:"p95 end-to-end target (s)", type:"number", def:2, step:0.1, feeds:"SLO"},
+    {id:"ttft", l:"Time-to-first-token target (s)", type:"number", def:0.3, step:0.05, feeds:"TTFT"},
+    {id:"stream", l:"Stream tokens to the user", type:"select", o:["Yes","No"], def:"Yes"}]},
+  {t:"Quality and evaluation", d:"Quality is a threshold to meet, not something to maximize.", f:[
+    {id:"quality", l:"Quality bar", type:"textarea", def:"≥ 95% grounded answers on a 200-case eval set; correct JSON format 99%.", wide:true},
+    {id:"evalm", l:"How it is measured", type:"select", o:["LLM judge + human spot checks","Human review only","Automated exact match","Not decided"], def:"LLM judge + human spot checks"},
+    {id:"fallback", l:"What happens on failure", type:"text", def:"Escalate to a human agent"}]},
+  {t:"Cost and caching", d:"Budget and repetition decide which cost levers are available.", f:[
+    {id:"budget", l:"Monthly budget (USD)", type:"number", def:50000},
+    {id:"repeat", l:"Near-duplicate questions (%)", type:"number", def:30, feeds:"semantic cache", h:"Share answerable from a semantic cache"},
+    {id:"hosting", l:"Hosting preference", type:"select", o:["API","Self-host","Hybrid","Undecided"], def:"Undecided"}]},
+  {t:"Model and hardware", d:"Candidates for each path. Prices are inputs you should confirm.", f:[
+    {id:"apimodel", l:"API model candidate", type:"text", def:"Claude Sonnet 5.5"},
+    {id:"pin", l:"$ per M input tokens", type:"number", def:2, step:0.01, feeds:"API"},
+    {id:"pout", l:"$ per M output tokens", type:"number", def:10, step:0.01, feeds:"API"},
+    {id:"pcache", l:"$ per M cached input", type:"number", def:0.2, step:0.01, feeds:"API"},
+    {id:"model", l:"Self-host model candidate", type:"select", o:Object.entries(MODELS).filter(([k])=>k!=="custom").map(([k,m])=>[k,m.label]), def:"llama3-8b", feeds:"model"},
+    {id:"wdtype", l:"Weight precision", type:"select", o:[["2","FP16 / BF16"],["1","FP8"],["0.5","INT4"]], def:"1", feeds:"model"},
+    {id:"gpu", l:"GPU available", type:"select", o:Object.entries(GPUS).filter(([k])=>k!=="custom").map(([k,g])=>[k,g.label]), def:"h100", feeds:"hardware"},
+    {id:"gprice", l:"$ per GPU-hour", type:"number", def:4.25, step:0.01, feeds:"hardware"},
+    {id:"spare", l:"Spare replicas for failover", type:"number", def:1, feeds:"hardware"}]},
+  {t:"Data, safety and reliability", d:"Constraints that can rule an option out before cost matters.", f:[
+    {id:"residency", l:"Data residency", type:"select", o:["No constraint","Region-locked","Sovereign cloud required","On-premises only"], def:"No constraint"},
+    {id:"pii", l:"Personal data in prompts", type:"select", o:["None","Some","Heavy"], def:"Some"},
+    {id:"compliance", l:"Compliance regimes", type:"text", def:"GDPR"},
+    {id:"tools", l:"Tool access", type:"select", o:["No tools","Read-only tools","Tools that change data"], def:"Read-only tools"},
+    {id:"inputs", l:"Untrusted input exposure", type:"select", o:["Trusted input only","End-user messages","Untrusted documents or web pages"], def:"End-user messages"},
+    {id:"avail", l:"Availability target", type:"text", def:"99.9%"}]}
+];
+const QF = Q.flatMap(s=>s.f);
+const qdefaults = () => Object.fromEntries(QF.map(f=>[f.id, f.def]));
+let A = qdefaults();
+let currentId = null, db = null, dl = null;
+
+function renderQForm(){
+  $("#qform").innerHTML = Q.map((sec,i)=>`<section class="qsec"><h3><span class="eyebrow">${String(i+1).padStart(2,"0")}</span>${esc(sec.t)}</h3><p>${esc(sec.d)}</p><div class="qgrid">`+
+    sec.f.map(f=>{
+      const lab=`<label for="q-${f.id}">${esc(f.l)}${f.feeds?`<span class="feeds">→ ${esc(f.feeds)}</span>`:""}</label>`;
+      let ctl;
+      if(f.type==="select") ctl=`<select id="q-${f.id}">${f.o.map(o=>{const [v,t]=Array.isArray(o)?o:[o,o]; return `<option value="${esc(v)}">${esc(t)}</option>`;}).join("")}</select>`;
+      else if(f.type==="textarea") ctl=`<textarea id="q-${f.id}"></textarea>`;
+      else ctl=`<input type="${f.type}" id="q-${f.id}" ${f.type==="number"?`min="0" step="${f.step||1}"`:""}>`;
+      return `<div class="field ${f.wide?"wide":""}">${lab}${ctl}${f.h?`<div class="hint">${esc(f.h)}</div>`:""}</div>`;
+    }).join("")+`</div></section>`).join("");
+}
+function writeQ(){ QF.forEach(f=>{ const el=$("#q-"+f.id); if(el) el.value = A[f.id]==null? "" : A[f.id]; }); renderDerived(); }
+function readQ(){ QF.forEach(f=>{ const el=$("#q-"+f.id); if(!el) return; A[f.id] = f.type==="number" ? (el.value===""? "" : parseFloat(el.value)) : el.value; }); }
+const num = v => { const x=parseFloat(v); return isFinite(x)? x : 0; };
+
+function toCalc(a){
+  const m = MODELS[a.model] || MODELS["llama3-8b"], g = GPUS[a.gpu] || GPUS.h100, wb = num(a.wdtype)||1;
+  const P=m.P;
+  // choose smallest TP that fits weights with at least 20% of memory left for KV
+  let tp=1; for(const t of [1,2,4,8,16]){ tp=t; if(t*g.mem*0.9 - P*1e9*wb/GiB > 0.2*t*g.mem*0.9) break; }
+  return Object.assign({}, BASE, {
+    req: num(a.convs)*Math.max(1,num(a.turns)), in: num(a.sys)+num(a.rag)+num(a.hist)+num(a.umsg), out: Math.max(1,num(a.outtok)),
+    peak: Math.max(1,num(a.peak)), prefix: num(a.sys), hit: Math.min(95,num(a.repeat)),
+    slomode: a.slomode==="ttft"?"ttft":"full", slo: num(a.slo)||2, ttft: num(a.ttft),
+    pin: num(a.pin), pout: num(a.pout), pcache: num(a.pcache), promptcache: true,
+    model: a.model, P:m.P, L:m.L, Hkv:m.Hkv, dh:m.dh, wbytes: wb,
+    gpu: a.gpu, mem:g.mem, bw:g.bw, flops: wb<2? g.f8 : g.f16, price: num(a.gprice)||g.price, tp, red: num(a.spare), measured:false
+  });
+}
+function renderDerived(){
+  readQ();
+  const c = toCalc(A), r = compute(c), flags=[];
+  const budget = num(A.budget);
+  if(budget>0){
+    flags.push(r.apiMonthly<=budget ? ["good",`API estimate ${usdK(r.apiMonthly)}/month is within the ${usdK(budget)} budget`] : ["bad",`API estimate ${usdK(r.apiMonthly)}/month exceeds the ${usdK(budget)} budget`]);
+    if(r.selfOK) flags.push(r.selfMonthly<=budget ? ["good",`Self-host estimate ${usdK(r.selfMonthly)}/month is within budget`] : ["warn",`Self-host estimate ${usdK(r.selfMonthly)}/month exceeds budget`]);
+  }
+  if(r.fits && !r.feasible) flags.push(["bad",`Latency target can't be met with ${MODELS[c.model].label} on ${c.tp}× ${GPUS[c.gpu].label}. Relax the target, stream, or use a smaller model`]);
+  if(A.residency==="Sovereign cloud required"||A.residency==="On-premises only") flags.push(["warn","Residency may rule out public APIs. Plan for self-hosting or a sovereign provider"]);
+  if(A.tools==="Tools that change data") flags.push(["warn","Tools that change data need confirmation steps, scoped permissions and audit logs"]);
+  if(A.inputs==="Untrusted documents or web pages") flags.push(["warn","Untrusted content means prompt-injection defenses on input and output"]);
+  if(A.pii==="Heavy") flags.push(["warn","Heavy personal data: redaction before logging and caching, retention limits"]);
+  if(num(A.repeat)===0) flags.push(["warn","0% repeat assumed. Check logs: support traffic is often 30%+ near-duplicate"]);
+  if(A.evalm==="Not decided") flags.push(["bad","No evaluation method yet. Decide before choosing a model"]);
+  if(num(A.growth)>0) flags.push(["good",`At +${n0(num(A.growth))}% growth, plan for ${n0(c.req*(1+num(A.growth)/100))} calls/day next year`]);
+  $("#derived").innerHTML = `<div class="eyebrow">Derived for the calculator</div>
+    <div class="lines" style="margin-top:6px">
+      ${line("Model calls per day", `${n0(num(A.convs))} × ${n0(Math.max(1,num(A.turns)))}`, n0(c.req))}
+      ${line("Input tokens per call", `${n0(num(A.sys))} + ${n0(num(A.rag))} + ${n0(num(A.hist))} + ${n0(num(A.umsg))}`, n0(c.in))}
+      ${line("Peak output rate", "", n0(r.peakOut)+" tok/s")}
+      ${line("Self-host fleet", r.selfOK? `${MODELS[c.model].label}, ${c.tp} GPU per replica`:"", r.selfOK? n0(r.gpus)+" GPUs" : "doesn't fit")}
+      ${line("API / month", "", usd(r.apiMonthly))}
+      ${line("Self-host / month", "", r.selfOK? usd(r.selfMonthly):"—")}
+    </div>
+    <ul class="flags">${flags.map(([c,t])=>`<li>${pill(c,c==="good"?"OK":c==="warn"?"Check":"Risk")}<span>${esc(t)}</span></li>`).join("")}</ul>`;
+}
+$("#qform").addEventListener("input", ()=>{ renderDerived(); });
+$("#p-tocalc").addEventListener("click", ()=>{
+  readQ(); const c=toCalc(A); Object.keys(S).forEach(k=>delete S[k]); Object.assign(S,c);
+  writeForm(); show("calculator"); try{ history.replaceState(null,"","#calculator"); }catch(e){}
+  $("#scn-status").textContent = `Loaded from intake: ${A.name||"Untitled project"}`; window.scrollTo({top:0});
+});
+
+function toMarkdown(){
+  readQ(); const c=toCalc(A), r=compute(c);
+  let md=`# ${A.name||"Untitled project"}: LLM project intake\n\n`;
+  Q.forEach(sec=>{ md+=`## ${sec.t}\n\n`; sec.f.forEach(f=>{ let v=A[f.id]; if(f.type==="select"&&f.o){ const o=f.o.find(o=>Array.isArray(o)?o[0]==v:o==v); if(Array.isArray(o)) v=o[1]; } md+=`- **${f.l}:** ${v===""||v==null?"—":v}\n`; }); md+="\n"; });
+  md+=`## Sizing estimate\n\n- Model calls/day: ${n0(c.req)}\n- Input / output tokens per call: ${n0(c.in)} / ${n0(c.out)}\n- Peak output rate: ${n0(r.peakOut)} tok/s\n`;
+  md+=`- API: ${usd(r.apiMonthly)}/month\n- Self-host: ${r.selfOK? `${n0(r.gpus)} × ${GPUS[c.gpu].label} (${n0(r.fleet)} replicas × TP ${c.tp}), ${usd(r.selfMonthly)}/month` : "model doesn't fit"}\n`;
+  md+=`\n_Physics-based estimate; confirm throughput with a load test._\n`;
+  return md;
+}
+async function exportMd(){
+  const md=toMarkdown(), fname=(A.name||"llm-project").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-").toLowerCase()+"-intake.md";
+  const st=$("#p-status");
+  if(dl){ try{ await dl.save({filename:fname, data:md}); st.textContent="Saved "+fname; return; }catch(e){ if(e&&e.code==="declined"){ st.textContent="Download cancelled."; return; } } }
+  try{ await navigator.clipboard.writeText(md); st.textContent="Markdown copied to clipboard."; }
+  catch(e){ st.textContent="Couldn't download or copy in this view."; }
+}
+$("#p-export").addEventListener("click", exportMd);
+
+/* projects (db) */
+let projects=[];
+function renderPList(){
+  $("#plist").innerHTML = projects.map(p=>`<li><button type="button" data-id="${esc(p.id)}" aria-current="${p.id===currentId}">${esc(p.name||"Untitled project")}<small>${p.updatedAt? new Date(p.updatedAt).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}):""}</small></button></li>`).join("");
+  $("#plist-empty").hidden = projects.length>0;
+  $("#p-delete").hidden = !currentId; $("#p-delete-confirm").hidden = true;
+}
+$("#plist").addEventListener("click", e=>{ const b=e.target.closest("button[data-id]"); if(!b) return;
+  const p=projects.find(x=>x.id===b.dataset.id); if(!p) return; currentId=p.id; A=Object.assign(qdefaults(), p.answers||{}); writeQ(); renderPList(); $("#p-status").textContent=""; });
+$("#p-new").addEventListener("click", ()=>{ currentId=null; A=qdefaults(); A.name=""; writeQ(); renderPList(); $("#p-status").textContent="New project. Starting values are examples; replace them."; });
+$("#p-save").addEventListener("click", async ()=>{
+  readQ(); const st=$("#p-status");
+  if(!db){ st.textContent="Saving isn't available in this view. Use Export as Markdown."; return; }
+  const body={name:A.name||"Untitled project", updatedAt:Date.now(), answers:Object.assign({},A)};
+  try{
+    if(currentId) await db.collection("projects").doc(currentId).set(body);
+    else { const ref=await db.collection("projects").add(body); currentId=ref.id; }
+    st.textContent="Saved "+body.name+"."; renderPList();
+  }catch(e){ st.textContent = e&&e.code==="quota_exceeded" ? "Storage is full. Delete an old project and try again." : e&&e.code==="invalid_argument" ? "You don't have permission to save here." : "Couldn't save. Try again."; }
+});
+$("#p-delete").addEventListener("click", ()=>{ $("#p-delete-confirm").hidden=false; $("#p-delete").hidden=true; });
+$("#p-delete-confirm").addEventListener("click", async ()=>{
+  if(!db||!currentId) return; const st=$("#p-status");
+  try{ await db.collection("projects").doc(currentId).delete(); currentId=null; A=qdefaults(); writeQ(); st.textContent="Project deleted."; renderPList(); }
+  catch(e){ st.textContent="Couldn't delete. Try again."; }
+});
+
+/* ---------- boot ---------- */
+fillSelects(); writeForm();
+$("#calcform").addEventListener("input", onInput);
+$("#calcform").addEventListener("change", onInput);
+renderQForm(); writeQ(); renderPList();
+let start = (location.hash||"").slice(1);
+if(!VIEWS.includes(start)){ try{ start = localStorage.getItem("ch1-tab")||"notes"; }catch(e){ start="notes"; } }
+show(start);
+render();
+
+if(window.claude && typeof window.claude.use==="function"){
+  window.claude.use("db").then(d=>{
+    db=d; if(!db){ $("#p-save").disabled=true; $("#plist-empty").textContent="Saving projects isn't available in this view. Export as Markdown instead."; return; }
+    db.collection("projects").orderBy("updatedAt","desc").limit(200).onSnapshot(snap=>{
+      projects = snap.docs.map(d=>Object.assign({id:d.id}, d.data())); renderPList();
+    }, ()=>{ $("#plist-empty").textContent="Couldn't load saved projects."; });
+  }).catch(()=>{ $("#p-save").disabled=true; });
+  window.claude.use("downloads").then(d=>{ dl=d; }).catch(()=>{});
+} else {
+  $("#p-save").disabled=true; $("#plist-empty").textContent="Saving projects isn't available in this view. Export as Markdown instead.";
+}
+})();
+</script>
+
+</body></html>

@@ -1,25 +1,36 @@
-# LaTeX build artifacts
-book/_minted-*/
-book/*.aux
-book/*.aex
-book/*.log
-book/*.out
-book/*.toc
-book/*.idx
-book/*.ilg
-book/*.ind
-book/*.fls
-book/*.fdb_latexmk
-book/*.pyg
-book/*.w18
-book/*.tmp
-# Ignored directories
-book/
-old/
-tools/
+# macOS
+.DS_Store
+
+# IDE
+.idea/
 
 # Python
 __pycache__/
-*.pyc
-.pytest_cache/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+*.whl
 
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Mypy
+.mypy_cache/
+
+# Jupyter
+.ipynb_checkpoints/
